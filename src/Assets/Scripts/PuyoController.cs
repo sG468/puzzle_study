@@ -18,6 +18,7 @@ public enum PuyoType
 
 [RequireComponent(typeof(Renderer))]
 
+
 public class PuyoController : MonoBehaviour
 {
     static readonly Color[] color_table = new Color[]
