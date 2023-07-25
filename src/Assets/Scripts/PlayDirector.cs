@@ -36,7 +36,7 @@ public class PlayDirector : MonoBehaviour
     //得点
     [SerializeField] TextMeshProUGUI textScore = default!;
     uint _score = 0;
-    int _chainCount = -2; //連鎖数（得点計算に必要）-1は初期化用 magic number
+    int _chainCount = -1; //連鎖数（得点計算に必要）-1は初期化用 magic number
 
 
     //状態管理
