@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
 interface IState
@@ -12,6 +13,7 @@ interface IState
         GameOver = 1,
         Falling = 2,
         Erasing = 3,
+        Waiting = 4,
 
         MAX,
 
@@ -38,6 +40,7 @@ public class PlayDirector : MonoBehaviour
     uint _score = 0;
     int _chainCount = -1; //連鎖数（得点計算に必要）-1は初期化用 magic number
 
+    bool _canSpawn = false;
 
     //状態管理
     IState.E_State _current_state = IState.E_State.Falling;
@@ -46,6 +49,7 @@ public class PlayDirector : MonoBehaviour
         new GameOverState(),
         new FallingState(),
         new ErasingState(),
+        new WaitingState(),
     };
     
     // Start is called before the first frame update
@@ -57,8 +61,11 @@ public class PlayDirector : MonoBehaviour
         _playerController.SetLogicalInput(_logicalInput);
 
         _nextQueue.Initialize();
+        UpdateNextsView();
         //状態の初期化
         InitializeState();
+
+        SetScore(0);
     }
 
     void UpdateNextsView()
@@ -93,6 +100,15 @@ public class PlayDirector : MonoBehaviour
         }
 
         _logicalInput.Update(inputDev);
+    }
+
+    class WaitingState : IState
+    {
+        public IState.E_State Initialize(PlayDirector parent) { return IState.E_State.Unchanged; }
+        public IState.E_State Update(PlayDirector parent)
+        {
+            return parent._canSpawn ? IState.E_State.Control : IState.E_State.Unchanged;
+        }
     }
 
     class ControlState : IState
@@ -143,7 +159,7 @@ public class PlayDirector : MonoBehaviour
                 return IState.E_State.Unchanged;//消すアニメーションに突入
             }
             parent._chainCount = 0;//連鎖が途切れた
-            return IState.E_State.Control;//消すものはない
+            return parent._canSpawn ? IState.E_State.Control : IState.E_State.Waiting;//消すものはない
         }
 
         public IState.E_State Update(PlayDirector parent)
@@ -201,5 +217,15 @@ public class PlayDirector : MonoBehaviour
     {
         if (0 < score) SetScore(_score + score);
     }
+
+    public void EnableSpawn(bool enable)
+    {
+        _canSpawn = enable;
+    }
+
+    public bool IsGameOver()
+    {
+        return _current_state == IState.E_State.GameOver;
+    } 
 }
 
